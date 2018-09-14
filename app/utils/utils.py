@@ -163,14 +163,14 @@ def get_sims_text(iv_dict, iu_df, u_vec, num):
     return results
 
 
-def del_sentence_with_word(id_row, desc_row, del_dp_texts):
+def del_sentence_with_word(row, del_dp_texts):
     # def del_sentence_with_word(id_row, desc_row, color_row, del_dp_texts):
     word = '搭配'
-    del_sentence1 = re.findall(r'[^，。]*?{}[^，。]*?，'.format(word), desc_row)
-    del_sentence2 = re.findall(r'[^，。]*?{}[^，。]*?'.format(word), desc_row)
+    del_sentence1 = re.findall(r'[^，。]*?{}[^，。]*?，'.format(word), row['description'])
+    del_sentence2 = re.findall(r'[^，。]*?{}[^，。]*?'.format(word), row['description'])
     del_sentence = del_sentence1 + del_sentence2
     # description_deleted = str(id_row) + str(color_row) + desc_row
-    description_deleted = str(id_row) + desc_row
+    description_deleted = row['title'] + row['description']
     if del_sentence.__len__():
         for i in range(len(del_sentence)):
             del_sentence_str = del_sentence[i]

@@ -64,7 +64,7 @@ def data_process():
 
     for index, row in data_df.iterrows():
         # 删除含有 '搭配'的短语
-        del_dp_texts, description_deleted = del_sentence_with_word(row['id'], row['description'], del_dp_texts)
+        del_dp_texts, description_deleted = del_sentence_with_word(row, del_dp_texts)
 
         text = row['title'] + row['FFCGO'] + row['url'] + description_deleted
         # text = row['title'] + row['FFCGO'] + row['name'] + row['url'] + description_deleted
