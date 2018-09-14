@@ -5,17 +5,17 @@ import jieba
 import fastText as ft
 import config
 import json
-from app.utils.utils import stop_words, jb_text, similarity
-from sklearn.metrics.pairwise import euclidean_distances
-from scipy.stats import pearsonr
+from app.utils.utils import stop_words, jb_text, get_sims_text
 
 from flask import jsonify, request
 
 jieba.load_userdict('{}local_dict'.format(config.stop_words_path))
 
 id_url_df = pd.read_csv(os.path.join(config.data_path, 'id_url.csv'))
-# model = ft.load_model('{}wiki.zh.bin'.format(config.model_path))
+
+
 model = ft.load_model('{}local_model.bin'.format(config.model_path))
+# model = ft.load_model('{}wiki.zh.bin'.format(config.model_path))
 
 
 def get_by_text():
@@ -33,33 +33,15 @@ def get_by_text():
     pre_data = [jb_text(texts, stopwords)]
     np.savetxt('{}pre_data1.txt'.format(config.jb_path), np.array(pre_data), fmt='%s')
 
+    # get 前端输入文本的 sentence-vector
     u_vector = model.get_sentence_vector(''.join(i for i in pre_data))
+
+    # 加载 sentence-vector : {'id':id,'vector':[]}
     with open('{}/id_vec_dict.json'.format(config.model_path), 'r') as rf:
         id_vec_dict = json.load(rf)
-    sims = []
-    ids = []
-    for pid, vec in id_vec_dict.items():
-        ids.append(pid)
 
-        # sim = similarity(u_vector, vec)
-        # sims.append(sim)
-
-        # ed_sim = float(euclidean_distances([vec], [u_vector]))
-        # sims.append(ed_sim)
-
-        # pers
-        pers_sim = pearsonr(vec, u_vector)
-        sims.append(pers_sim[0])
-
-    dict_d = {'pid': ids, 'sim_data': sims}
-    sims_df = pd.DataFrame(dict_d)
-    sims_df = sims_df.join(id_url_df)
-    sims_df = sims_df.sort_values(by=['sim_data'], ascending=False)
-    sims_df = sims_df.reset_index(drop=True)
-    pids = sims_df.iloc[0:sim_num]['pid'].values.tolist()
-    urls = sims_df.iloc[0:sim_num]['url'].values.tolist()
-    results = [pids, urls]
-    # print('api2的结果是{}'.format(results))
+    # 得到sim_num个相似商品
+    results = get_sims_text(id_vec_dict, id_url_df, u_vector, sim_num)
     return jsonify({'text_pid_url': results,
                     'rec_num': sim_num
                     })

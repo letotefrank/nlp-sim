@@ -10,6 +10,8 @@ import http.client
 import hashlib
 from urllib import parse
 import random
+from scipy.stats import pearsonr
+from sklearn.metrics.pairwise import euclidean_distances
 
 
 def translate_baidu(text):
@@ -56,16 +58,6 @@ def translate_baidu(text):
         finally:
             if httpClient:
                 httpClient.close()
-    return translation_texts
-
-
-def translate_google(text):
-    translation_texts = []
-    text_list = text.split(',')
-    translator = Translator(to_lang="zh")
-    for t in text_list:
-        result = translator.translate(t)
-        translation_texts.append(result)
     return translation_texts
 
 
@@ -120,33 +112,53 @@ def stop_words():
 
 
 def similarity(v1, v2):
-    n1 = np.linalg.norm(v1)
-    n2 = np.linalg.norm(v2)
-    return np.dot(v1, v2) / n1 / n2
+    cos = 1
+    pers = 1
+    if cos:
+        n1 = np.linalg.norm(v1)
+        n2 = np.linalg.norm(v2)
+        sim = np.dot(v1, v2) / n1 / n2
+    elif pers:
+        # pers
+        pears = pearsonr(v2, v1)
+        sim = pears[0]
+    else:
+        sim = float(euclidean_distances([v2], [v1]))
+    return sim
 
 
-def get_vectors(model1):
-    vectors = []
-    with open(os.path.join('{}pre_data.txt'.format(config.jb_path))) as f:
-        for line in f:
-            line = line.replace('\n', '')
-            vector = model1.get_sentence_vector(line)
-            vectors.append(vector.tolist())
-    return vectors
-
-
-def get_sims(id_vec_dict1, id_url_df1, sim_num, pid):
+def get_sims(iv_dict, iu_df, num, id):
     sims = []
-    for iv in id_vec_dict1:
-        sim = similarity(id_vec_dict1[pid], id_vec_dict1[iv])
+    for iv in iv_dict:
+        sim = similarity(iv_dict[str(id)], iv_dict[iv])
         sims.append(sim)
     dict_d = {'sim_data': sims}
     sims_df = pd.DataFrame(dict_d)
-    df = id_url_df1.join(sims_df)
+    df = iu_df.join(sims_df)
     df = df.sort_values(by=['sim_data'], ascending=False)
     df = df.reset_index(drop=True)
-    pids = df.iloc[0:sim_num]['id'].values.tolist()
-    urls = df.iloc[0:sim_num]['url'].values.tolist()
+    pid_list = df.iloc[0:num]['id'].values.tolist()
+    url_list = df.iloc[0:num]['url'].values.tolist()
+    results = [pid_list, url_list]
+    return results
+
+
+def get_sims_text(iv_dict, iu_df, u_vec, num):
+    sims = []
+    ids = []
+    for pid, vec in iv_dict.items():
+        ids.append(pid)
+
+        sim = similarity(u_vec, vec)
+        sims.append(sim)
+
+    dict_d = {'pid': ids, 'sim_data': sims}
+    sims_df = pd.DataFrame(dict_d)
+    sims_df = sims_df.join(iu_df)
+    sims_df = sims_df.sort_values(by=['sim_data'], ascending=False)
+    sims_df = sims_df.reset_index(drop=True)
+    pids = sims_df.iloc[0:num]['pid'].values.tolist()
+    urls = sims_df.iloc[0:num]['url'].values.tolist()
     results = [pids, urls]
     return results
 
@@ -154,7 +166,9 @@ def get_sims(id_vec_dict1, id_url_df1, sim_num, pid):
 def del_sentence_with_word(id_row, desc_row, del_dp_texts):
     # def del_sentence_with_word(id_row, desc_row, color_row, del_dp_texts):
     word = '搭配'
-    del_sentence = re.findall(r'[^，。]*?{}[^，。]*?，'.format(word), desc_row)
+    del_sentence1 = re.findall(r'[^，。]*?{}[^，。]*?，'.format(word), desc_row)
+    del_sentence2 = re.findall(r'[^，。]*?{}[^，。]*?'.format(word), desc_row)
+    del_sentence = del_sentence1 + del_sentence2
     # description_deleted = str(id_row) + str(color_row) + desc_row
     description_deleted = str(id_row) + desc_row
     if del_sentence.__len__():

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import render_template
-from app.model import fit_data_model, sim_pid_model, sim_text_model
+from app.model import fit_model_vector, sim_pid_model, sim_text_model
 from app import app
 
 
@@ -9,9 +9,9 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/fit_data", methods=['GET'])
+@app.route("/fit", methods=['GET'])
 def fit_data():
-    return fit_data_model.fit_data()
+    return fit_model_vector.fit()
 
 
 @app.route("/sim_by_pid", methods=['GET', 'POST'])

@@ -34,9 +34,9 @@ def get_data_db():
                     cursor.execute(sql)
                     # 获取所有记录列
                     results = cursor.fetchall()
-                    pre_data_df = pd.DataFrame(list(results),
-                                               columns=['id', 'iid', 'image', 'description', 'title', 'FFCGO', 'name',
-                                                        'url'])
+                    data_df = pd.DataFrame(list(results),
+                                           columns=['id', 'iid', 'image', 'description', 'title', 'FFCGO', 'name',
+                                                    'url'])
                 except Exception as e:
                     print(e)
-        return pre_data_df
+        return data_df
