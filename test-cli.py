@@ -16,14 +16,17 @@ req_text = {
             '"SUMMER & SAGE","https://qimg-staging.letote.cn/uploads/photo/19333/full_559A3569.jpg_2x3.jpg',
     'rec_num': 100
 }
+
+date = '2018-03-16' + ' ' + '00:00:00'
 #
 start = time.time()
 print('nlp_text 请求中。。。')
-fit = requests.get(url='http://10.0.1.41:8081/fit_data')
+# fit = requests.get(url='http://10.0.1.41:8081/fit')
+fit = requests.get(url='http://10.0.1.41:8081/fit_rank', data=json.dumps(date))
 # fit = requests.get(url='http://52.83.166.134:5000/query?image_name=13_1354_I03A7729.JPG_2x3.jpg&k=100')
 # nr = requests.post(url='http://10.0.1.41:8081/sim_by_pid', data=json.dumps(req_data))
 # nt = requests.post(url='http://10.0.1.41:8081/sim_by_text', data=json.dumps(req_text))
-# print(fit.text)
+print(fit.text)
 # # print(nr.text)
 # print(nt.text)
 end = time.time()

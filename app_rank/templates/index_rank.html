@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="zh-Hans">
+
+<head>
+  <meta charset="utf-8">
+  <!-- 基础设置 -->
+  <meta name="theme-color" content="#000000">
+  <meta name="renderer" content="webkit">
+  <meta name="HandheldFriendly" content="true">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+  <meta name="screen-orientation" content="portrait">
+  <meta name="x5-orientation" content="portrait">
+  <meta name="full-screen" content="yes">
+  <meta name="x5-fullscreen" content="true">
+  <meta name="browsermode" content="application">
+  <meta name="x5-page-mode" content="app">
+  <meta name="msapplication-tap-highlight" content="no">
+  <meta name="format-detection" content="telephone=no, email=no">
+  <title>搜索</title>
+</head>
+<link rel="stylesheet" type="text/css" href="static/index.css">
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<body>
+  <div class="container">
+    <div class="search-box">
+      <input type="tel" id="idInput" name="product_id" placeholder="请输入产品ID"  />
+      <span onclick="getIdSearch()" class="search-btn">查询</span>
+    </div>
+    <div class="search-box">
+      <input type="text" id="textInput" name="fname" placeholder="请输入文字" />
+      <span onclick="getTextSearch()" class="search-btn">查询</span>
+    </div>
+    <h5>ProductId</h5>
+    <div class="list-container">
+      <div id="ProductId" class="nlp-box"></div>
+    </div>
+    <h5>NLP</h5>
+    <div class="list-container">
+      <div id="NLP" class="nlp-box"></div>
+    </div>
+    <h5>Vison</h5>
+    <div class="list-container">
+      <div id="Vison" class="nlp-box"></div>
+    </div>
+    <h5>NLP_Text</h5>
+    <div class="list-container">
+      <div id="NLPText" class="nlp-box"></div>
+    </div>
+  </div>
+</body>
+<script>
+  function randomRgbColor() { //随机生成RGB颜色
+    var r = Math.floor(Math.random() * 256); //随机生成256以内r值
+    var g = Math.floor(Math.random() * 256); //随机生成256以内g值
+    var b = Math.floor(Math.random() * 256); //随机生成256以内b值
+    return `rgb(${r},${g},${b})`; //返回rgb(r,g,b)格式颜色
+  }
+  function renderSpan(domId, data){
+    const span=document.createElement("span");  // 以 DOM 创建新元素
+    span.className= "list-box"
+    if (data.active) {
+      span.style.marginRight=`2px` 
+      span.style.border=`1px solid ${data.active}` 
+    }
+    span.innerHTML=`<img src=${data.img}><span>产品ID:${data.id}</span>`
+    $(`#${domId}`).append(span)
+  }
+  var pid = null
+  var text = null
+  function getIdSearch(){
+    var inputPid = $("#idInput").val()
+    if (inputPid === pid) {
+      return null
+    }
+    $("#ProductId").html('')
+    $("#Vison").html('')
+    $("#NLP").html('')
+    pid = inputPid
+    $.ajax({
+      url:"http://10.0.1.41:8081/sim_by_pid",
+      success: function (data){
+        let NLPIdS = data.rec_pid_url[0]
+        let NLPImg = data.rec_pid_url[1]
+        let VisonIds = data.rec_pid_url[3]
+        let VisonImg = data.rec_pid_url[2]
+        if (NLPIdS.length === 0) {
+          return null
+        }
+        let newNlpData = []
+        let newVisionData = new Array(VisonIds.length)
+        let activeNum = 0
+
+        NLPIdS.map((v,k)=>{
+          let index = VisonIds.findIndex((v1)=> v1 === v)
+          if (VisonIds.findIndex((v1)=> v1 === v) >= 0) {
+            const color = randomRgbColor()
+            newNlpData.push({
+              id: v,
+              img: NLPImg[k],
+              active: color
+            })
+            newVisionData[index] = {
+              id: VisonIds[index],
+              img: VisonImg[index],
+              active: color
+            }
+            activeNum += 1
+          } else {
+            newNlpData.push({
+              id: v,
+              img: NLPImg[k]
+            })
+          }
+        })
+        VisonIds.map((v,k)=>{
+          if (!newVisionData[k]) {
+            newVisionData[k] = {
+              id: VisonIds[k],
+              img: VisonImg[k]
+            }
+          }
+        })
+        newNlpData.map((v, k) => {
+          if (k === 0) {
+            renderSpan('ProductId', v)
+          }
+          renderSpan('NLP', v)
+          const visonProduct = newVisionData[k]
+          if (visonProduct) {
+            renderSpan('Vison', visonProduct)
+          }
+        })
+        $("#NLP").css('width',`${NLPImg.length * 110 + activeNum * 4 }px`)
+        $("#Vison").css('width',`${VisonImg.length * 110 + activeNum * 4}px`)
+      },
+      data:{
+          "pid": pid,
+          "rec_num": "100",
+          "end_flag": "0"
+      },
+      dataType: 'json'
+    });
+  }
+  function getTextSearch(){
+    let inputText = $("#textInput").val()
+    if (text === inputText) {
+      return null
+    }
+    $("#NLPText").html('')
+    text = inputText
+    $.ajax({
+      url:"http://10.0.1.41:8081/sim_by_text",
+      success: function (data){
+        let idS = data.text_pid_url[0]
+        let imgS = data.text_pid_url[1]
+        idS.map((v, k) => {
+          let span=document.createElement("span");  // 以 DOM 创建新元素
+          span.className="list-box"
+          span.innerHTML=`<img src=${imgS[k]}><span>产品ID:${v}</span>`
+          $("#NLPText").append(span)
+        })
+        $("#NLPText").css('width',`${idS.length * 110}px`)
+      },
+      data:{
+          "text": inputText,
+          "rec_num": "100"
+      },
+      dataType: 'json'
+    });
+  }
+</script>
+</html>

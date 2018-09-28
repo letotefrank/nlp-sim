@@ -43,12 +43,12 @@ def data_process():
     :return:
     '''
     # 连接mysql,得到数据
-    # data = get_data_db()
-    # print('sql得到数据')
+    data = get_data_db()
+    print('sql得到数据')
 
     # 数据预处理
-    # data_df = pre_process(data)
-    data_df = pd.read_csv(os.path.join(config.data_path, 'data_df.csv'))
+    data_df = pre_process(data)
+    # data_df = pd.read_csv(os.path.join(config.data_path, 'data_df.csv'))
     # 翻译color
     # color_df = translate_color(data_df['color'])
     # data_df['color'] = color_df
@@ -80,7 +80,7 @@ def data_process():
     print('del_dp_text_data.txt  saved')
 
     # 分词结果，并用于计算vector的输入
-    np.savetxt('{}pre_data.txt'.format(config.jb_path), np.array(pre_data), fmt='%s')
+    np.savetxt('{}pre_data2.txt'.format(config.jb_path), np.array(pre_data), fmt='%s')
     print('pre_data.txt  saved')
 
     return id_url_df
