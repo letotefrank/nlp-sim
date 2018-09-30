@@ -6,6 +6,7 @@ from flask import request
 from app_rank.utils.utils import date_deal
 
 
+# 城市类别排序，save 4*4=16个json文件（4个城市，4个类[父类衣服，首饰；子类衣服，首饰]】）
 def fit_city_rank():
     date1 = request.args.get("date1")
     date1 = date_deal(date1)

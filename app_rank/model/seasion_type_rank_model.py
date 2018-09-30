@@ -5,6 +5,21 @@ import json
 from flask import request
 from app_rank.utils.utils import date_deal
 
+'''
+季节计算方法:通过下面三个参数，为商品确定所属季节
+a:季节均值
+b:季节个数
+ab: a+b
+
+return: {   
+            1:夏季
+            2:春秋
+            3:冬
+            4:初夏（春秋夏）
+            5:初冬（春秋冬）
+        }
+'''
+
 
 def set_season(a, b, ab):
     if ab == 3:
@@ -19,6 +34,7 @@ def set_season(a, b, ab):
         return 5
 
 
+# 设置商品所属季节
 def get_season_df(p_base):
     season_df = p_base[['product_id', 'season_id']].drop_duplicates()
     season_df = season_df.reset_index(drop=True)
@@ -46,6 +62,7 @@ def get_season_df(p_base):
     return p_season
 
 
+# 季节类别排序，save 2个json文件
 def fit_season_rank():
     date1 = request.args.get("date1")
     date1 = date_deal(date1)

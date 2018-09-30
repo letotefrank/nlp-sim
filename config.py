@@ -25,6 +25,14 @@ stop_words_path = get_root() + '/stopwords/'
 # model路径
 model_path = get_root() + '/model/'
 
+# json文件路径
+json_path = get_root() + '/rank_result/'
+
+# rank_data
+rank_data_path = get_root() + '/rank_data'
+# rank_result
+rank_result_path = get_root() + '/rank_result'
+
 # jieba处理后，数据保存路径
 jb_path = get_root() + '/jb_deal_data/'
 if not os.path.exists(jb_path):

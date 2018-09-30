@@ -1,3 +1,8 @@
+'''
+Bayesian average
+'''
+
+
 def bar(data):
     data_df = data[['product_id', 'ratingMean']].sort_values(by='product_id')
     data_df['v'] = data_df.groupby('product_id')['ratingMean'].transform(lambda x: x.count()).values
