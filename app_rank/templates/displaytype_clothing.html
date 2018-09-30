@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="utf-8">
+    <!-- 基础设置 -->
+    <meta name="theme-color" content="#000000">
+    <meta name="renderer" content="webkit">
+    <meta name="HandheldFriendly" content="true">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <meta name="screen-orientation" content="portrait">
+    <meta name="x5-orientation" content="portrait">
+    <meta name="full-screen" content="yes">
+    <meta name="x5-fullscreen" content="true">
+    <meta name="browsermode" content="application">
+    <meta name="x5-page-mode" content="app">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="format-detection" content="telephone=no, email=no">
+    <title>displayType</title>
+</head>
+<link rel="stylesheet" type="text/css" href="static/index.css">
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/lodash.js/4.17.10/lodash.min.js"></script>
+<body>
+<div class="container">
+    <h4>子类衣服</h4>
+    <div>
+        <span>开始日期</span>
+        <input id="startTime" placeholder="开始日期" type="date"/>
+        <span>结束日期</span>
+        <input id="endTime" placeholder="结束日期" type="date"/>
+        <button class="search-btn" onclick="onSearch()">立即搜索</button>
+        <select id="address" value="" onchange="cityData()">
+            <option value="1">深圳市</option>
+            <option value="2">上海市</option>
+            <option value="3">北京市</option>
+            <option value="4">广州市</option>
+        </select>
+        <select id="season" value="" onchange="seasonData()">
+            <option value="1">夏</option>
+            <option value="2">春秋</option>
+            <option value="3">冬</option>
+            <option value="4">初夏(春秋夏)</option>
+            <option value="5">初冬(春秋冬)</option>
+        </select>
+        <a href="http://10.0.1.41:8081/a_turn?page=ancestrytype_clothing.html">父类衣服</a>
+        <a href="http://10.0.1.41:8081/a_turn?page=ancestrytype_accessory.html">父类首饰</a>
+        <a href="http://10.0.1.41:8081/a_turn?page=displaytype_clothing.html">子类衣服</a>
+        <a href="http://10.0.1.41:8081/a_turn?page=displaytype_accessory.html">子类首饰</a>
+    </div>
+    <div id="clothing_rank">
+    </div>
+    <div id="box-container">
+    </div>
+</div>
+</body>
+<script>
+    var one_city_clothing_displayType = []
+    var two_city_clothing_displayType = []
+    var three_city_clothing_displayType = []
+    var four_city_clothing_displayType = []
+    var season_clothing_displayType = []
+</script>
+<script>
+    function getNewData(){
+        $.ajax({
+        type: 'get',
+        url: 'http://10.0.1.41:8081/getJson?jsonName=1city_clothing_displayType.json',
+        dataType: 'json',
+        success: function (data) {
+            one_city_clothing_displayType = data['1city_clothing_displayType.json']
+        }
+    })
+    $.ajax({
+        type: 'get',
+        url: 'http://10.0.1.41:8081/getJson?jsonName=2city_clothing_displayType.json',
+        dataType: 'json',
+        success: function (data) {
+            two_city_clothing_displayType = data['2city_clothing_displayType.json']
+        }
+    })
+    $.ajax({
+        type: 'get',
+        url: 'http://10.0.1.41:8081/getJson?jsonName=3city_clothing_displayType.json',
+        dataType: 'json',
+        success: function (data) {
+            three_city_clothing_displayType = data['3city_clothing_displayType.json']
+        }
+    })
+    $.ajax({
+        type: 'get',
+        url: 'http://10.0.1.41:8081/getJson?jsonName=4city_clothing_displayType.json',
+        dataType: 'json',
+        success: function (data) {
+            four_city_clothing_displayType = data['4city_clothing_displayType.json']
+        }
+    })
+    $.ajax({
+        type: 'get',
+        url: 'http://10.0.1.41:8081/getJson?jsonName=season_clothing_displayType.json',
+        dataType: 'json',
+        success: function (data) {
+            season_clothing_displayType = data['season_clothing_displayType.json']
+        }
+    })
+    }
+</script>
+<script>
+    var clothingType = ["cardigans", "vests", "maxi dresses", "blazers", "denim", "trench", "blouses", "tees", "sweatshirts", "pencil", "leggings", "jean", "trousers", "jumpsuits", "shorts", "rompers", "full", "a-line", "sheath", "fit and flare", "body con", "wrap", "shirtdress", "bomber", "tanks", "maxi", "jogger", "shift", "button-down", "sweaters", "car coats", "jacket", "cape", "duster", "moto", "aline"]
+
+    var dataNum = 20
+    var isSuccess = sessionStorage.getItem('getDataSuccess')
+
+    if (isSuccess) {
+        getNewData()
+        getClothingRank()
+    }
+
+    function getClothingRank(){
+        $(`#clothing_rank`).html('')
+        $.ajax({
+            type: 'get',
+            url: 'http://10.0.1.41:8081/getJson?jsonName=clothing_rank.json',
+            dataType: 'json',
+            success: function (data) {
+                let newData = _.dropRight(data['clothing_rank.json'], data['clothing_rank.json'].length - 300)
+                const div = document.createElement("div");  // 以 DOM 创建新元素
+                div.className = "rank-row"
+                let dom = ''
+                _.map(newData, (v, k) => {
+                    dom += `<div class="rank-col">
+                        <img src=${v.url} />
+                        <span>产品ID:${v.product_id}</span>
+                    </div>`
+                })
+                div.innerHTML = dom
+                $(`#clothing_rank`).append(div)
+            }
+        })
+    }
+
+    function onSearch() {
+        var startTime = $("#startTime").val()
+        var endTime = $("#endTime").val()
+        $.ajax({
+            url: " http://10.0.1.41:8081/fit_rank",
+            success: function (data) {
+                if (data == 1) {
+                    isSuccess = true
+                    sessionStorage.setItem('getDataSuccess', true)
+                    getClothingRank()
+                    getNewData()
+                    $(`#box-container`).html('')
+                    alert('训练非常的成功，可以选择城市和季节！')
+                } else {
+                    isSuccess = false
+                    alert('训练失败！')
+                }
+            },
+            error: function (data) {
+                alert('训练失败！')
+            },
+            data: {
+                "date1": startTime,
+                "date2": endTime
+            },
+            dataType: 'json'
+        });
+    }
+
+    function seasonData() {
+        if (!isSuccess) {
+            alert('训练失败！')
+            return null
+        }
+        var season = $("#season").val()
+        $(`#box-container`).html('')
+        let seasonData = _.filter(season_clothing_displayType, (v, k) => (v.season == season))
+        _.map(clothingType, (v, k) => {
+            let list = _.filter(seasonData, (v1, k1) => (v1.displayType == v))
+            renderSpan('box-container', list, v)
+        })
+    }
+
+    function renderSpan(domId, data, title) {
+        if (_.isEmpty(data)) {
+            return null
+        }
+        data = _.dropRight(data, data.length - dataNum)
+        const div = document.createElement("div");  // 以 DOM 创建新元素
+        div.className = "row"
+        let dom = `<span>${title}</span>`
+        _.map(data, (v, k) => {
+            dom += `<div class="col">
+              <img src=${v.url} />
+              <span>产品ID:${v.product_id}</span>
+          </div>`
+        })
+        div.innerHTML = dom
+        $(`#${domId}`).append(div)
+    }
+
+    function cityData() {
+        if (!isSuccess) {
+            alert('训练失败！')
+            return null
+        }
+        var address = $("#address").val()
+        $(`#box-container`).html('')
+        var data = []
+        if (address == 1) {
+            data = one_city_clothing_displayType
+        } else if (address == 2) {
+            data = two_city_clothing_displayType
+        } else if (address == 3) {
+            data = three_city_clothing_displayType
+        } else if (address == 4) {
+            data = four_city_clothing_displayType
+        } else {
+            alert('有问题!')
+        }
+        _.map(clothingType, (v, k) => {
+            let list = _.filter(data, (v1, k1) => (v1.ancestryType > 0 && v1.displayType == v))
+            renderSpan('box-container', list, v)
+        })
+    }
+</script>
+</html>
