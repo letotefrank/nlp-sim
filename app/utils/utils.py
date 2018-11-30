@@ -96,7 +96,7 @@ def jb_text(raw_line, stopwords):
     # duplicate_list = list(set(meaninful_words))
     # duplicate_list.sort(key=meaninful_words.index)
 
-    return ' '.join(meaninful_words)  # 分词后，词语连接方式为空格 ' '
+    return '\t'.join(meaninful_words)  # 分词后，词语连接方式为空格 ' '
     # return ' '.join(duplicate_list)  # 分词后，词语连接方式为空格 ' '
 
 
@@ -183,6 +183,7 @@ def del_sentence_with_word(row, del_dp_texts):
     return del_dp_texts, description_deleted
 
 
+# 去除'搭配'后面的句子
 def del_sentence_word(texts):
     word = '搭配'
     del_sentence = re.findall(r'[^，。]*?{}[^，。]*?，'.format(word), texts)
